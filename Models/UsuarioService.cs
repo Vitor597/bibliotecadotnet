@@ -1,11 +1,13 @@
 using System.Linq;
 using System.Collections.Generic;
 using System.Collections;
+using Microsoft.EntityFrameworkCore;
 
 namespace Biblioteca.Models
 {
     public class UsuarioService
     {
+       
         public void Inserir(Usuario l)
         {
             using(BibliotecaContext bc = new BibliotecaContext())
@@ -27,60 +29,58 @@ namespace Biblioteca.Models
             }
         }
 
-        public ICollection<Livro> ListarTodos(FiltrosLivros filtro = null)
+        public ICollection<Usuario> Listar()
         {
             using(BibliotecaContext bc = new BibliotecaContext())
             {
-                IQueryable<Livro> query;
+                IQueryable<Usuario> query = bc.Usuarios;
                 
-                if(filtro != null)
-                {
-                    //definindo dinamicamente a filtragem
-                    switch(filtro.TipoFiltro)
-                    {
-                        case "Autor":
-                            query = bc.Livros.Where(l => l.Autor.Contains(filtro.Filtro));
-                        break;
-
-                        case "Titulo":
-                            query = bc.Livros.Where(l => l.Titulo.Contains(filtro.Filtro));
-                        break;
-
-                        default:
-                            query = bc.Livros;
-                        break;
-                    }
-                }
-                else
-                {
-                    // caso filtro não tenha sido informado
-                    query = bc.Livros;
-                }
                 
                 //ordenação padrão
-                return query.OrderBy(l => l.Titulo).ToList();
+                return query.OrderBy(l => l.Id).ToList();
             }
         }
 
-        public ICollection<Livro> ListarDisponiveis()
+      
+        public Usuario ObterPorId(int id)
         {
             using(BibliotecaContext bc = new BibliotecaContext())
             {
-                //busca os livros onde o id não está entre os ids de livro em empréstimo
-                // utiliza uma subconsulta
-                return
-                    bc.Livros
-                    .Where(l =>  !(bc.Emprestimos.Where(e => e.Devolvido == false).Select(e => e.LivroId).Contains(l.Id)) )
-                    .ToList();
+                return bc.Usuarios.Find(id);
             }
         }
 
-        public Livro ObterPorId(int id)
+        public void Remover(Usuario l)
         {
             using(BibliotecaContext bc = new BibliotecaContext())
             {
-                return bc.Livros.Find(id);
+                 bc.Usuarios.Remove(l);
+                 bc.SaveChanges();
             }
         }
+
+        public Usuario Login(Usuario user)
+        {
+            using(BibliotecaContext bc = new BibliotecaContext())
+            {
+                 Usuario usuario = bc.Usuarios.Single(u => u.Login.Contains(user.Login));
+
+                 if(usuario.Login == user.Login && usuario.Senha == user.Senha){
+                     user.Id = usuario.Id;
+                     user.Login = usuario.Login;
+                     user.Senha = usuario.Senha;
+                     
+                 }
+
+                 else{
+                     user = null;
+                 }
+
+                return user;
+
+            }
+        }
+
+
     }
 }

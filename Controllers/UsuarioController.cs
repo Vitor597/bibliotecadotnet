@@ -1,3 +1,10 @@
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Biblioteca.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -5,49 +12,94 @@ namespace Biblioteca.Controllers
 {
     public class UsuarioController : Controller
     {
+        public IActionResult Index()
+        {
+            Autenticacao.CheckLogin(this);
+            return View();
+        }
         public IActionResult Cadastro()
         {
             //Autenticacao.CheckLogin(this);
+            if(HttpContext.Session.GetString("login") != "admin")
+            return RedirectToAction("Index", "Home");
             return View();
         }
 
         [HttpPost]
-        public IActionResult Cadastro(Usuario l)
+        public IActionResult Cadastro(Usuario u)
         {
             UsuarioService usuarioService = new UsuarioService();
 
-            if(l.Id == 0)
+            if(u.Id == 0)
             {
-                usuarioService.Inserir(l);
+                usuarioService.Inserir(u);
             }
             else
             {
-                usuarioService.Atualizar(l);
+                usuarioService.Atualizar(u);
             }
 
-            return RedirectToAction("Home");
+            return RedirectToAction("Listagem");
         }
 
-        public IActionResult Listagem(string tipoFiltro, string filtro)
+        public IActionResult Listagem()
         {
-            Autenticacao.CheckLogin(this);
-            FiltrosLivros objFiltro = null;
-            if(!string.IsNullOrEmpty(filtro))
-            {
-                objFiltro = new FiltrosLivros();
-                objFiltro.Filtro = filtro;
-                objFiltro.TipoFiltro = tipoFiltro;
-            }
-            LivroService livroService = new LivroService();
-            return View(livroService.ListarTodos(objFiltro));
+            if(HttpContext.Session.GetString("login") != "admin")
+            return RedirectToAction("Index", "Home");
+          
+           ICollection<Usuario> usuarios;
+
+           UsuarioService l = new UsuarioService();
+
+           usuarios = l.Listar();
+
+           return View(usuarios);
+
+           
         }
 
+        [HttpGet]
         public IActionResult Edicao(int id)
         {
-            Autenticacao.CheckLogin(this);
-            LivroService ls = new LivroService();
-            Livro l = ls.ObterPorId(id);
-            return View(l);
+            
+            UsuarioService ls = new UsuarioService();
+            Usuario user = new Usuario();
+            user  = ls.ObterPorId(id);
+            return View(user);
+        }
+        
+        [HttpPost]
+         public IActionResult Edicao(Usuario l)
+        {
+            using(BibliotecaContext bc = new BibliotecaContext())
+            {
+            
+            Usuario user = bc.Usuarios.Find(l.Id);
+            user.Login = l.Login;
+            user.Senha = l.Senha;
+
+            bc.SaveChanges();
+
+            return RedirectToAction("Listagem");
+            }
+            
+        }
+
+         public IActionResult Remover(int id)
+        {
+            
+            
+            
+            Usuario user = new Usuario();
+            UsuarioService us = new UsuarioService();
+            user = us.ObterPorId(id);
+            us.Remover(user);
+
+        
+
+            return RedirectToAction("Listagem");
+            
+            
         }
     }
 }

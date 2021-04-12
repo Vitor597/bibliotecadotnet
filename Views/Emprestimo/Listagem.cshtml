@@ -22,7 +22,7 @@
 
 <div class="row">
     <div class="col-md-12">
-        <table > 
+        <table class="table table-striped"> 
             <thead>
                 <tr><th>Id</th>
                 <th>Usuario</th>
@@ -36,6 +36,33 @@
             <tbody>
                 @foreach(Emprestimo e in Model)
                 {
+                  DateTime emprestimo = new DateTime();
+                  emprestimo = e.DataDevolucao;
+
+                  int result = DateTime.Compare(emprestimo, DateTime.Now);
+
+                  if(result < 0)
+                  {
+                    <style>
+                        .atrasado{
+                            color: red;
+                        }
+                    </style> 
+
+                    <tr class="atrasado">
+                    <td>@e.Id</td>
+                    <td>@e.NomeUsuario</td>
+                    <td>@e.DataEmprestimo.ToString("dd/MM/yyyy")</td>
+                    <td>@e.DataDevolucao.ToString("dd/MM/yyyy")</td>
+                    <td>@e.Livro.Titulo</td>
+                    <td>@e.Livro.Autor</td>
+                    <td><a href="/Emprestimo/Edicao/@e.Id">Editar</a></td>
+                </tr>    
+                 
+                 } else {
+                  
+
+
                 <tr>
                     <td>@e.Id</td>
                     <td>@e.NomeUsuario</td>
@@ -45,9 +72,17 @@
                     <td>@e.Livro.Autor</td>
                     <td><a href="/Emprestimo/Edicao/@e.Id">Editar</a></td>
                 </tr>
+                  }
+
                 }
+
             </tbody>
         </table>
+        @for(int i = 1; i<= (int)ViewData["Paginas"]; i++)
+  {
+      <a href="/Emprestimo/Listagem/?p=@i">@i</a>
+  }
     </div>
 </div>
 
+@ViewData["Mensagem02"]

@@ -82,5 +82,26 @@ namespace Biblioteca.Models
                 return bc.Livros.Find(id);
             }
         }
+
+        public ICollection<Livro> Listar(int page, int size){
+            
+            using(BibliotecaContext bc = new BibliotecaContext())
+            {   
+
+                int pular = (page - 1) * size;
+
+                IQueryable<Livro> query = bc.Livros;
+
+                return query.Skip(pular).Take(size).ToList();
+            }
+        }
+
+        public int CountLivros(){
+
+            using(BibliotecaContext bc = new BibliotecaContext()){
+
+                return bc.Livros.Count();
+            }
+        }
     }
 }

@@ -38,6 +38,29 @@ namespace Biblioteca.Models
             }
         }
 
+        public ICollection<Emprestimo> Listar(int page, int size){
+            
+            using(BibliotecaContext bc = new BibliotecaContext())
+            {   
+
+                int pular = (page - 1) * size;
+
+                bc.Emprestimos.Include(e => e.Livro).ToList();
+
+                IQueryable<Emprestimo> query = bc.Emprestimos;
+
+                return query.Skip(pular).Take(size).ToList();
+            }
+        }
+
+        public int CountEmprestimos(){
+
+            using(BibliotecaContext bc = new BibliotecaContext()){
+
+                return bc.Emprestimos.Count();
+            }
+        }
+
         public Emprestimo ObterPorId(int id)
         {
             using(BibliotecaContext bc = new BibliotecaContext())
